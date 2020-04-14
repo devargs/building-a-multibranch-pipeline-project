@@ -9,7 +9,21 @@ pipeline {
         CI = 'true'
     }
     stages {
-
+      stage("build & SonarQube analysis") {
+        agent any
+        steps {
+          withSonarQubeEnv('Sonar') { 
+            sh 'echo Sonar Qube...'
+          }
+        }
+      }
+      stage("Quality Gate") {
+        steps {
+          timeout(time: 1, unit: 'HOURS') {
+            waitForQualityGate abortPipeline: true
+          }
+        }
+      }
       stage('Build') {
           steps {
               sh 'npm install'
