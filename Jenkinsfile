@@ -16,9 +16,26 @@ pipeline {
         }
         stage('Test') {
             steps {
-                sh './jenkins/scripts/test.sh'
+              withSonarQubeEnv('Sonar') { 
+                sh 'mvn org.sonarsource.scanner.maven:sonar-maven-plugin:4.3.0.2102:sonar ' + 
+                '-f all/pom.xml ' +
+                '-Dsonar.projectKey=sample-react' +
+                '-Dsonar.login=$SONAR_UN ' +
+                '-Dsonar.password=$SONAR_PW ' +
+              }
+              withSonarQubeEnv('My SonarQube Server') {
+                 sh './jenkins/scripts/test.sh'
+              }
+                
             }
         }
+        stage("Quality Gate") {
+            steps {
+              timeout(time: 3, unit: 'MINUTES') {
+                waitForQualityGate abortPipeline: true
+              }
+            }
+          }
         stage('Deliver for development') {
             when {
                 branch 'develop' 
