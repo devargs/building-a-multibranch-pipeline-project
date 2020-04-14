@@ -9,25 +9,7 @@ pipeline {
         CI = 'true'
     }
     stages {
-      stage("build & SonarQube analysis") {
-        agent any
-        steps {
-          withSonarQubeEnv('Sonar') { 
-            sh 'mvn org.sonarsource.scanner.maven:sonar-maven-plugin:4.3.0.2102:sonar ' + 
-            '-f all/pom.xml ' +
-            '-Dsonar.projectKey=sample-react ' +
-            '-Dsonar.login=$SONAR_UN ' +
-            '-Dsonar.password=$SONAR_PW ' +
-          }
-        }
-      }
-      stage("Quality Gate") {
-        steps {
-          timeout(time: 1, unit: 'HOURS') {
-            waitForQualityGate abortPipeline: true
-          }
-        }
-      }
+
       stage('Build') {
           steps {
               sh 'npm install'
