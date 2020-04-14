@@ -9,12 +9,8 @@ pipeline {
         CI = 'true'
     }
     stages {
-        stage('Build') {
-            steps {
-                sh 'npm install'
-            }
-        }
-        stage('Test') {
+      stage("build & SonarQube analysis") {
+            agent any
             steps {
               withSonarQubeEnv('Sonar') { 
                 sh 'mvn org.sonarsource.scanner.maven:sonar-maven-plugin:4.3.0.2102:sonar ' + 
@@ -23,19 +19,26 @@ pipeline {
                 '-Dsonar.login=$SONAR_UN ' +
                 '-Dsonar.password=$SONAR_PW ' +
               }
-              withSonarQubeEnv('My SonarQube Server') {
-                 sh './jenkins/scripts/test.sh'
-              }
-                
             }
-        }
-        stage("Quality Gate") {
+          }
+          stage("Quality Gate") {
             steps {
-              timeout(time: 3, unit: 'MINUTES') {
+              timeout(time: 1, unit: 'HOURS') {
                 waitForQualityGate abortPipeline: true
               }
             }
           }
+
+        stage('Build') {
+            steps {
+                sh 'npm install'
+            }
+        }
+        stage('Test') {
+            steps {
+              sh './jenkins/scripts/test.sh' 
+            }
+        }
         stage('Deliver for development') {
             when {
                 branch 'develop' 
